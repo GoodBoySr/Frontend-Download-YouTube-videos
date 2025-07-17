@@ -171,7 +171,7 @@ async function startProcess() {
   document.getElementById("downloadOptions").style.display = "none";
   document.getElementById("previewVideo").style.display = "none";
 
-  const res = await fetch("https://<your-backend-url>/api/metadata", {
+  const res = await fetch("https://railway.com/project/cf696c5d-1cc2-48e4-8ebd-6009cac1f298/service/309f1ba5-d47e-4f65-b99b-cac350d55687?id=58d36422-a228-4ddd-82a0-d6218426354b#deploy/api/metadata", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ url })
