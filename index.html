@@ -12,6 +12,9 @@
       color: #111;
       margin: 0;
       padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
     header {
       background: #ff0000;
@@ -25,6 +28,7 @@
       max-width: 800px;
       margin: 40px auto;
       padding: 20px;
+      flex-grow: 1;
     }
     .input-row {
       display: flex;
@@ -51,6 +55,20 @@
       background: #ff0000;
       color: #fff;
     }
+    .spinner {
+      margin: 20px auto;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #ccc;
+      border-top: 4px solid #ff0000;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
     .preview {
       display: none;
       margin-top: 20px;
@@ -63,6 +81,14 @@
       flex-direction: column;
       margin-top: 20px;
       gap: 10px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.4s ease;
+    }
+    .download-options.show {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
     }
     .download-options button {
       padding: 12px;
@@ -76,18 +102,18 @@
       background-color: #ff0000;
       color: white;
     }
-    .loading {
-      display: none;
-      margin-top: 20px;
-      font-size: 16px;
-      color: #555;
+    .placeholder {
       text-align: center;
+      font-size: 24px;
+      margin-top: 80px;
+      color: #aaa;
     }
     .footer {
       text-align: center;
       color: #666;
-      margin-top: 40px;
       font-size: 14px;
+      padding: 30px 10px 10px;
+      margin-top: auto;
     }
     .footer a {
       color: #ff0000;
@@ -122,19 +148,20 @@
       <button class="button" onclick="pasteClipboard()">Paste</button>
       <button class="button" onclick="startProcess()">Download</button>
     </div>
-    <div class="loading" id="loading">⏳ Loading preview... Please wait 5 seconds...</div>
+    <div class="spinner" id="loadingSpinner"></div>
+    <div id="placeholder" class="placeholder">¯\_(ツ)_/¯</div>
     <video id="previewVideo" class="preview" width="100%" controls muted></video>
     <div class="download-options" id="downloadOptions">
       <button onclick="downloadFile('mp3')">Download as MP3 (10 min only)</button>
       <button onclick="downloadFile('no_credit')">Download without credit</button>
       <button onclick="downloadFile('with_credit')">Download with credit</button>
     </div>
-    <div class="footer">
-      ⚠️ This tool is for personal/educational use only. Videos longer than 45 minutes are not allowed.<br>
-      &copy; SkylineBots <br>
-      <a onclick="openModal()">Privacy & Terms</a><br><br>
-      -Tdou’s Project - YouTube
-    </div>
+  </div>
+  <div class="footer">
+    ⚠️ This tool is for personal/educational use only. Videos longer than 45 minutes are not allowed.<br>
+    &copy; SkylineBots #SkylineBots #DownloaderTool<br>
+    <a onclick="openModal()">Privacy & Terms</a><br><br>
+    -Tdou’s Project - YouTube
   </div>
   <div class="modal" id="termsModal">
     <div class="modal-content">
@@ -167,30 +194,30 @@ async function startProcess() {
   const url = document.getElementById("urlInput").value.trim();
   if (!url) return alert("Please enter a YouTube URL.");
 
-  document.getElementById("loading").style.display = "block";
-  document.getElementById("downloadOptions").style.display = "none";
+  document.getElementById("placeholder").style.display = "none";
+  document.getElementById("loadingSpinner").style.display = "block";
+  document.getElementById("downloadOptions").classList.remove("show");
   document.getElementById("previewVideo").style.display = "none";
 
-  const res = await fetch("https://railway.com/project/cf696c5d-1cc2-48e4-8ebd-6009cac1f298/service/309f1ba5-d47e-4f65-b99b-cac350d55687?id=58d36422-a228-4ddd-82a0-d6218426354b#deploy/api/metadata", {
+  const res = await fetch("https://your-backend-url/api/metadata", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ url })
   });
 
   const data = await res.json();
+  document.getElementById("loadingSpinner").style.display = "none";
+
   if (data.error) return alert(data.error);
 
   if (data.duration > 2700) return alert("❌ Video is over 45 minutes and cannot be downloaded.");
   else if (data.duration > 1800) alert("⚠️ Video is over 30 minutes. It may take longer to process.");
 
-  setTimeout(() => {
-    document.getElementById("loading").style.display = "none";
-    const video = document.getElementById("previewVideo");
-    video.src = data.preview_url;
-    video.style.display = "block";
-    document.getElementById("downloadOptions").style.display = "flex";
-    sessionStorage.setItem("video_url", url);
-  }, 5000);
+  const video = document.getElementById("previewVideo");
+  video.src = data.preview_url;
+  video.style.display = "block";
+  document.getElementById("downloadOptions").classList.add("show");
+  sessionStorage.setItem("video_url", url);
 }
 
 async function downloadFile(mode) {
@@ -201,7 +228,7 @@ async function downloadFile(mode) {
     alert("⚠️ Only the first 10 minutes will be downloaded in this format.");
   }
 
-  const res = await fetch("https://<your-backend-url>/api/download", {
+  const res = await fetch("https://your-backend-url/api/download", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ url, mode })
