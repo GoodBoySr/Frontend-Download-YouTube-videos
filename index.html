@@ -1,0 +1,221 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skyline YouTube Downloader</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #fff;
+      color: #111;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #ff0000;
+      padding: 16px;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    .input-row {
+      display: flex;
+      gap: 10px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    .button {
+      padding: 12px 18px;
+      background: #fff;
+      color: #ff0000;
+      border: 1px solid #ff0000;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    .button:hover {
+      background: #ff0000;
+      color: #fff;
+    }
+    .preview {
+      display: none;
+      margin-top: 20px;
+      border: 3px solid #8b0000;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .download-options {
+      display: none;
+      flex-direction: column;
+      margin-top: 20px;
+      gap: 10px;
+    }
+    .download-options button {
+      padding: 12px;
+      font-size: 15px;
+      background: #f9f9f9;
+      border: 1px solid #ff0000;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .download-options button:hover {
+      background-color: #ff0000;
+      color: white;
+    }
+    .loading {
+      display: none;
+      margin-top: 20px;
+      font-size: 16px;
+      color: #555;
+      text-align: center;
+    }
+    .footer {
+      text-align: center;
+      color: #666;
+      margin-top: 40px;
+      font-size: 14px;
+    }
+    .footer a {
+      color: #ff0000;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <header>Skyline YouTube Downloader</header>
+  <div class="container">
+    <div class="input-row">
+      <input type="text" id="urlInput" placeholder="Paste YouTube URL here">
+      <button class="button" onclick="pasteClipboard()">Paste</button>
+      <button class="button" onclick="startProcess()">Download</button>
+    </div>
+    <div class="loading" id="loading">⏳ Loading preview... Please wait 5 seconds...</div>
+    <video id="previewVideo" class="preview" width="100%" controls muted></video>
+    <div class="download-options" id="downloadOptions">
+      <button onclick="downloadFile('mp3')">Download as MP3 (10 min only)</button>
+      <button onclick="downloadFile('no_credit')">Download without credit</button>
+      <button onclick="downloadFile('with_credit')">Download with credit</button>
+    </div>
+    <div class="footer">
+      ⚠️ This tool is for personal/educational use only. Videos longer than 45 minutes are not allowed.<br>
+      &copy; SkylineBots <br>
+      <a onclick="openModal()">Privacy & Terms</a><br><br>
+      -Tdou’s Project - YouTube
+    </div>
+  </div>
+  <div class="modal" id="termsModal">
+    <div class="modal-content">
+      <h2>Privacy & Terms</h2>
+      <p>This tool does not store any user data. All processing is done temporarily to generate a download.</p>
+      <p>Usage of this tool implies consent to personal use only. Rehosting, redistribution, or misuse is prohibited.</p>
+      <p>SkylineBots is not affiliated with YouTube.</p>
+      <button onclick="closeModal()">Close</button>
+    </div>
+  </div>
+  <script>
+    async function pasteClipboard() {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById('urlInput').value = text;
+      } catch {
+        alert("Clipboard access denied.");
+      }
+    }function openModal() {
+  document.getElementById("termsModal").style.display = "flex";
+}
+function closeModal() {
+  document.getElementById("termsModal").style.display = "none";
+}
+window.onclick = function(e) {
+  if (e.target == document.getElementById("termsModal")) closeModal();
+}
+
+async function startProcess() {
+  const url = document.getElementById("urlInput").value.trim();
+  if (!url) return alert("Please enter a YouTube URL.");
+
+  document.getElementById("loading").style.display = "block";
+  document.getElementById("downloadOptions").style.display = "none";
+  document.getElementById("previewVideo").style.display = "none";
+
+  const res = await fetch("https://<your-backend-url>/api/metadata", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url })
+  });
+
+  const data = await res.json();
+  if (data.error) return alert(data.error);
+
+  if (data.duration > 2700) return alert("❌ Video is over 45 minutes and cannot be downloaded.");
+  else if (data.duration > 1800) alert("⚠️ Video is over 30 minutes. It may take longer to process.");
+
+  setTimeout(() => {
+    document.getElementById("loading").style.display = "none";
+    const video = document.getElementById("previewVideo");
+    video.src = data.preview_url;
+    video.style.display = "block";
+    document.getElementById("downloadOptions").style.display = "flex";
+    sessionStorage.setItem("video_url", url);
+  }, 5000);
+}
+
+async function downloadFile(mode) {
+  const url = sessionStorage.getItem("video_url");
+  if (!url) return alert("No video URL stored.");
+
+  if (mode === 'mp3' || mode === 'no_credit') {
+    alert("⚠️ Only the first 10 minutes will be downloaded in this format.");
+  }
+
+  const res = await fetch("https://<your-backend-url>/api/download", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url, mode })
+  });
+
+  if (!res.ok) return alert("Download failed.");
+
+  const blob = await res.blob();
+  const a = document.createElement("a");
+  a.href = window.URL.createObjectURL(blob);
+  a.download = "download." + (mode === "mp3" ? "mp3" : "mp4");
+  a.click();
+}
+
+  </script>
+</body>
+</html>
