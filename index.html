@@ -228,7 +228,7 @@ async function downloadFile(mode) {
     alert("⚠️ Only the first 10 minutes will be downloaded in this format.");
   }
 
-  const res = await fetch("https://your-backend-url/api/download", {
+  const res = await fetch("https://railway-for-youtube-downloader-production.up.railway.app/api/download", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ url, mode })
