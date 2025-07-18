@@ -1,248 +1,296 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Skyline YouTube Downloader</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YouTube Downloader - SkylineBots</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
   <style>
-    * { box-sizing: border-box; }
     body {
-      font-family: 'Roboto', sans-serif;
-      background: #fff;
-      color: #111;
       margin: 0;
-      padding: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #fff;
+      color: #222;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
+      align-items: center;
     }
-    header {
-      background: #ff0000;
-      padding: 16px;
-      color: white;
-      font-size: 20px;
-      font-weight: bold;
+
+    h1 {
+      color: #cc0000;
+      margin-top: 40px;
+    }
+
+    .container {
+      margin-top: 20px;
+      width: 90%;
+      max-width: 600px;
       text-align: center;
     }
-    .container {
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 20px;
-      flex-grow: 1;
-    }
-    .input-row {
+
+    .input-group {
       display: flex;
+      justify-content: center;
       gap: 10px;
+      margin-bottom: 15px;
     }
+
     input[type="text"] {
-      flex: 1;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      width: 65%;
+      padding: 10px;
+      border: 2px solid #cc0000;
+      border-radius: 8px;
       font-size: 16px;
     }
-    .button {
-      padding: 12px 18px;
-      background: #fff;
-      color: #ff0000;
-      border: 1px solid #ff0000;
-      border-radius: 4px;
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #cc0000;
+      color: #fff;
       font-weight: bold;
       cursor: pointer;
-      transition: 0.2s ease;
+      transition: background 0.3s;
     }
-    .button:hover {
-      background: #ff0000;
-      color: #fff;
+
+    button:hover {
+      background-color: #a00000;
     }
+
+    #loading {
+      display: none;
+      margin-top: 20px;
+    }
+
     .spinner {
-      margin: 20px auto;
-      width: 40px;
-      height: 40px;
-      border: 4px solid #ccc;
-      border-top: 4px solid #ff0000;
+      width: 50px;
+      height: 50px;
+      border: 6px solid #ddd;
+      border-top: 6px solid #cc0000;
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      display: none;
+      margin: 20px auto;
     }
+
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      to { transform: rotate(360deg); }
     }
-    .preview {
-      display: none;
+
+    #preview {
       margin-top: 20px;
-      border: 3px solid #8b0000;
-      border-radius: 8px;
-      overflow: hidden;
+      display: none;
     }
-    .download-options {
+
+    #preview video {
+      border: 4px solid #880000;
+      border-radius: 12px;
+      max-width: 100%;
+    }
+
+    #buttons {
       display: none;
       flex-direction: column;
+      gap: 12px;
       margin-top: 20px;
-      gap: 10px;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.4s ease;
+      animation: fadeIn 1s ease-in-out;
     }
-    .download-options.show {
-      display: flex;
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .download-options button {
-      padding: 12px;
-      font-size: 15px;
-      background: #f9f9f9;
-      border: 1px solid #ff0000;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .download-options button:hover {
-      background-color: #ff0000;
-      color: white;
-    }
-    .placeholder {
-      text-align: center;
-      font-size: 24px;
-      margin-top: 80px;
-      color: #aaa;
-    }
-    .footer {
-      text-align: center;
+
+    .info {
+      font-size: 12px;
       color: #666;
-      font-size: 14px;
-      padding: 30px 10px 10px;
-      margin-top: auto;
+      margin-top: 20px;
     }
-    .footer a {
-      color: #ff0000;
-      text-decoration: underline;
-      cursor: pointer;
+
+    #nothing {
+      margin-top: 100px;
+      font-size: 24px;
+      opacity: 0.4;
     }
-    .modal {
+
+    #message {
+      margin-top: 20px;
+      color: #cc0000;
+      font-weight: bold;
+    }
+
+    .progress-overlay {
       display: none;
       position: fixed;
       top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.6);
-      justify-content: center;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.9);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      z-index: 999;
+      justify-content: center;
+      font-size: 20px;
     }
-    .modal-content {
-      background: white;
-      padding: 30px;
-      border-radius: 8px;
-      width: 90%;
-      max-width: 500px;
-      text-align: left;
+
+    .progress-bar-container {
+      width: 80%;
+      height: 20px;
+      background: #eee;
+      border-radius: 10px;
+      margin-top: 10px;
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: #cc0000;
+      border-radius: 10px;
+      transition: width 0.2s ease;
+    }
+
+    .percent-text {
+      position: absolute;
+      right: 10px;
+      top: -25px;
+      color: #444;
+      font-weight: bold;
+    }
+
+    .footer {
+      margin-top: 60px;
+      font-size: 14px;
+      color: #999;
+      text-align: center;
+    }
+
+    .footer button {
+      margin-top: 5px;
+      background: none;
+      color: #cc0000;
+      text-decoration: underline;
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 40px;
+      z-index: 99999;
+    }
+
+    @keyframes dots {
+      0%   { content: '•'; }
+      25%  { content: '• •'; }
+      50%  { content: '• • •'; }
+      75%  { content: '• • • •'; }
+      100% { content: '•'; }
     }
   </style>
 </head>
 <body>
-  <header>Skyline YouTube Downloader</header>
+
+  <h1>YouTube Downloader</h1>
+
   <div class="container">
-    <div class="input-row">
-      <input type="text" id="urlInput" placeholder="Paste YouTube URL here">
-      <button class="button" onclick="pasteClipboard()">Paste</button>
-      <button class="button" onclick="startProcess()">Download</button>
+    <div class="input-group">
+      <input type="text" id="url" placeholder="Paste YouTube link..." />
+      <button onclick="pasteURL()">Paste</button>
+      <button onclick="startDownload()">Download</button>
     </div>
-    <div class="spinner" id="loadingSpinner"></div>
-    <div id="placeholder" class="placeholder">¯\_(ツ)_/¯</div>
-    <video id="previewVideo" class="preview" width="100%" controls muted></video>
-    <div class="download-options" id="downloadOptions">
-      <button onclick="downloadFile('mp3')">Download as MP3 (10 min only)</button>
-      <button onclick="downloadFile('no_credit')">Download without credit</button>
-      <button onclick="downloadFile('with_credit')">Download with credit</button>
+
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>⌛ Loading... May take 5 seconds.</p>
     </div>
+
+    <div id="preview">
+      <video id="clip" autoplay muted loop></video>
+    </div>
+
+    <div id="buttons" class="animate__animated animate__fadeInUp">
+      <button onclick="handleOption(1)">Download First 10 Minutes</button>
+      <button onclick="handleOption(2)">Download Full Video (≤45 min)</button>
+      <button onclick="handleOption(3)">Download Full with @Credit</button>
+    </div>
+
+    <div id="message"></div>
+
+    <div id="nothing">¯\\_(ツ)_/¯</div>
   </div>
+
   <div class="footer">
-    ⚠️ This tool is for personal/educational use only. Videos longer than 45 minutes are not allowed.<br>
-    &copy; SkylineBots #SkylineBots #DownloaderTool<br>
-    <a onclick="openModal()">Privacy & Terms</a><br><br>
-    -Tdou’s Project - YouTube
+    <p>&copy; 2025 SkylineBots • #SkylineBots</p>
+    <button onclick="document.querySelector('.overlay').style.display='block'">Privacy & Terms</button>
   </div>
-  <div class="modal" id="termsModal">
-    <div class="modal-content">
-      <h2>Privacy & Terms</h2>
-      <p>This tool does not store any user data. All processing is done temporarily to generate a download.</p>
-      <p>Usage of this tool implies consent to personal use only. Rehosting, redistribution, or misuse is prohibited.</p>
-      <p>SkylineBots is not affiliated with YouTube.</p>
-      <button onclick="closeModal()">Close</button>
+
+  <div class="overlay" onclick="this.style.display='none'">
+    <h2>Terms & Privacy</h2>
+    <p>This tool is for personal use only. Do not redistribute downloaded videos.</p>
+    <p>Your data is not stored. Powered by SkylineBots.</p>
+  </div>
+
+  <div class="progress-overlay" id="progressUI">
+    <div>Downloading<span id="dots">...</span></div>
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progressBar"></div>
+      <div class="percent-text" id="percent">0%</div>
     </div>
   </div>
+
   <script>
-    async function pasteClipboard() {
-      try {
-        const text = await navigator.clipboard.readText();
-        document.getElementById('urlInput').value = text;
-      } catch {
-        alert("Clipboard access denied.");
+    function pasteURL() {
+      navigator.clipboard.readText().then(text => {
+        document.getElementById('url').value = text;
+      });
+    }
+
+    function startDownload() {
+      const url = document.getElementById('url').value.trim();
+      if (!url) return;
+
+      document.getElementById('nothing').style.display = 'none';
+      document.getElementById('loading').style.display = 'block';
+
+      setTimeout(() => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('preview').style.display = 'block';
+        document.getElementById('clip').src = 'https://www.w3schools.com/html/mov_bbb.mp4'; // Replace with preview
+        document.getElementById('buttons').style.display = 'flex';
+      }, 3000);
+    }
+
+    function handleOption(option) {
+      if (option === 1) {
+        document.getElementById('message').textContent = "The website can only download 10 minutes of this video's audio";
+        setTimeout(() => {
+          document.getElementById('message').textContent = "";
+          showDownloadUI();
+        }, 7000);
+      } else {
+        showDownloadUI();
       }
-    }function openModal() {
-  document.getElementById("termsModal").style.display = "flex";
-}
-function closeModal() {
-  document.getElementById("termsModal").style.display = "none";
-}
-window.onclick = function(e) {
-  if (e.target == document.getElementById("termsModal")) closeModal();
-}
+    }
 
-async function startProcess() {
-  const url = document.getElementById("urlInput").value.trim();
-  if (!url) return alert("Please enter a YouTube URL.");
+    function showDownloadUI() {
+      const progress = document.getElementById('progressUI');
+      const bar = document.getElementById('progressBar');
+      const percent = document.getElementById('percent');
 
-  document.getElementById("placeholder").style.display = "none";
-  document.getElementById("loadingSpinner").style.display = "block";
-  document.getElementById("downloadOptions").classList.remove("show");
-  document.getElementById("previewVideo").style.display = "none";
-
-  const res = await fetch("https://railway-for-youtube-downloader-production.up.railway.app/api/metadata", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url })
-  });
-
-  const data = await res.json();
-  document.getElementById("loadingSpinner").style.display = "none";
-
-  if (data.error) return alert(data.error);
-
-  if (data.duration > 2700) return alert("❌ Video is over 45 minutes and cannot be downloaded.");
-  else if (data.duration > 1800) alert("⚠️ Video is over 30 minutes. It may take longer to process.");
-
-  const video = document.getElementById("previewVideo");
-  video.src = data.preview_url;
-  video.style.display = "block";
-  document.getElementById("downloadOptions").classList.add("show");
-  sessionStorage.setItem("video_url", url);
-}
-
-async function downloadFile(mode) {
-  const url = sessionStorage.getItem("video_url");
-  if (!url) return alert("No video URL stored.");
-
-  if (mode === 'mp3' || mode === 'no_credit') {
-    alert("⚠️ Only the first 10 minutes will be downloaded in this format.");
-  }
-
-  const res = await fetch("https://railway-for-youtube-downloader-production.up.railway.app/api/download", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url, mode })
-  });
-
-  if (!res.ok) return alert("Download failed.");
-
-  const blob = await res.blob();
-  const a = document.createElement("a");
-  a.href = window.URL.createObjectURL(blob);
-  a.download = "download." + (mode === "mp3" ? "mp3" : "mp4");
-  a.click();
-}
-
+      progress.style.display = 'flex';
+      let i = 0;
+      const simulate = setInterval(() => {
+        i += 1;
+        if (i > 100) {
+          clearInterval(simulate);
+        } else {
+          bar.style.width = i + '%';
+          percent.textContent = i + '%';
+        }
+      }, 50);
+    }
   </script>
+
 </body>
 </html>
