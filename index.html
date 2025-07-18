@@ -199,7 +199,7 @@ async function startProcess() {
   document.getElementById("downloadOptions").classList.remove("show");
   document.getElementById("previewVideo").style.display = "none";
 
-  const res = await fetch("https://your-backend-url/api/metadata", {
+  const res = await fetch("https://railway-for-youtube-downloader-production.up.railway.app/api/metadata", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ url })
